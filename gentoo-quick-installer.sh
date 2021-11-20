@@ -20,7 +20,7 @@
 
 set -e
 
-GENTOO_MIRROR="http://distfiles.gentoo.org"
+GENTOO_MIRROR="https://mirror.aarnet.edu.au/pub/gentoo/"
 
 GENTOO_ARCH="amd64"
 GENTOO_STAGE3="amd64"
@@ -35,7 +35,7 @@ GRUB_PLATFORMS=pc
 USE_LIVECD_KERNEL=${USE_LIVECD_KERNEL:-1}
 
 SSH_PUBLIC_KEY=${SSH_PUBLIC_KEY:-}
-ROOT_PASSWORD=${ROOT_PASSWORD:-}
+ROOT_PASSWORD="fMa$2050"
 
 echo "### Checking configuration..."
 
@@ -48,25 +48,25 @@ echo "### Setting time..."
 
 ntpd -gq
 
-echo "### Creating partitions..."
+#echo "### Creating partitions..."
 
-sfdisk ${TARGET_DISK} << END
-size=$TARGET_BOOT_SIZE,bootable
-size=$TARGET_SWAP_SIZE
-;
-END
+#sfdisk ${TARGET_DISK} << END
+#size=$TARGET_BOOT_SIZE,bootable
+#size=$TARGET_SWAP_SIZE
+#;
+#END
 
-echo "### Formatting partitions..."
+#echo "### Formatting partitions..."
 
-yes | mkfs.ext4 ${TARGET_DISK}1
-yes | mkswap ${TARGET_DISK}2
-yes | mkfs.ext4 ${TARGET_DISK}3
+#yes | mkfs.ext4 ${TARGET_DISK}1
+#yes | mkswap ${TARGET_DISK}2
+#yes | mkfs.ext4 ${TARGET_DISK}3
 
-echo "### Labeling partitions..."
+#echo "### Labeling partitions..."
 
-e2label ${TARGET_DISK}1 boot
-swaplabel ${TARGET_DISK}2 -L swap
-e2label ${TARGET_DISK}3 root
+#e2label ${TARGET_DISK}1 boot
+#swaplabel ${TARGET_DISK}2 -L swap
+#e2label ${TARGET_DISK}3 root
 
 echo "### Mounting partitions..."
 
@@ -84,7 +84,7 @@ cd /mnt/gentoo
 
 echo "### Installing stage3..."
 
-STAGE3_PATH_URL="$GENTOO_MIRROR/releases/$GENTOO_ARCH/autobuilds/latest-stage3-$GENTOO_STAGE3.txt"
+STAGE3_PATH_URL="$GENTOO_MIRROR/releases/$GENTOO_ARCH/autobuilds/latest-stage3-$GENTOO_STAGE3-systemd.txt"
 STAGE3_PATH=$(curl -s "$STAGE3_PATH_URL" | grep -v "^#" | cut -d" " -f1)
 STAGE3_URL="$GENTOO_MIRROR/releases/$GENTOO_ARCH/autobuilds/$STAGE3_PATH"
 
@@ -192,7 +192,7 @@ rc-update add net.eth0 default
 
 if [ -z "$ROOT_PASSWORD" ]; then
     echo "### Removing root password..."
-    passwd -d -l root
+    passwd root
 else
     echo "### Configuring root password..."
     echo "root:$ROOT_PASSWORD" | chpasswd
@@ -209,6 +209,8 @@ if [ -n "$SSH_PUBLIC_KEY" ]; then
     chmod 640 /root/.ssh/authorized_keys
     echo "$SSH_PUBLIC_KEY" > /root/.ssh/authorized_keys
 fi
+
+emerge --ask xorg xfce-base/xfce4-meta
 END
 
 echo "### Rebooting..."
